@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0f0f1a;
+      color: #e0e0e0;
+      min-height: 100vh;
+    }
+
+    /* Login */
+    #login-screen {
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      background: radial-gradient(ellipse at center, #1a1a2e 0%, #0f0f1a 100%);
+    }
+
+    .login-card {
+      width: 380px; padding: 40px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      backdrop-filter: blur(20px);
+    }
+
+    .login-card h2 {
+      text-align: center; margin-bottom: 8px;
+      font-size: 22px; color: #fff;
+    }
+
+    .login-card .subtitle {
+      text-align: center; color: rgba(255,255,255,0.4);
+      font-size: 13px; margin-bottom: 28px;
+    }
+
+    .form-group { margin-bottom: 16px; }
+
+    .form-group label {
+      display: block; font-size: 12px;
+      color: rgba(255,255,255,0.5); margin-bottom: 6px;
+      text-transform: uppercase; letter-spacing: 1px;
+    }
+
+    .form-group input {
+      width: 100%; padding: 12px 16px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px; color: #fff;
+      font-size: 14px; outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-group input:focus { border-color: #ffd700; }
+
+    .btn {
+      width: 100%; padding: 12px;
+      background: linear-gradient(135deg, #ffd700, #ffaa00);
+      border: none; border-radius: 10px;
+      color: #1a1a2e; font-weight: 700;
+      font-size: 14px; cursor: pointer;
+      transition: transform 0.15s, opacity 0.2s;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .login-error {
+      margin-top: 12px; padding: 10px 14px;
+      background: rgba(255,60,60,0.1);
+      border: 1px solid rgba(255,60,60,0.2);
+      border-radius: 8px; color: #ff6b6b;
+      font-size: 13px; display: none; text-align: center;
+    }
+
+    /* Admin Panel */
+    #admin-panel { display: none; }
+
+    .admin-header {
+      padding: 16px 32px;
+      background: rgba(255,255,255,0.03);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+
+    .admin-header h1 { font-size: 18px; color: #ffd700; }
+
+    .admin-header .user-info {
+      display: flex; align-items: center; gap: 16px;
+      font-size: 13px; color: rgba(255,255,255,0.5);
+    }
+
+    .btn-sm {
+      padding: 8px 16px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px; color: #e0e0e0;
+      font-size: 12px; cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-sm:hover { background: rgba(255,255,255,0.1); }
+
+    .stats-bar {
+      padding: 20px 32px;
+      display: flex; gap: 16px;
+    }
+
+    .stat-card {
+      padding: 16px 24px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px; flex: 1;
+    }
+
+    .stat-card .stat-value { font-size: 28px; font-weight: 700; color: #ffd700; }
+    .stat-card .stat-label { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 4px; }
+
+    .toolbar {
+      padding: 12px 32px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+
+    .toolbar .title { font-size: 15px; font-weight: 600; }
+
+    .search-input {
+      padding: 8px 14px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px; color: #fff;
+      font-size: 13px; outline: none; width: 260px;
+    }
+
+    .search-input:focus { border-color: #ffd700; }
+
+    .messages-table {
+      margin: 0 32px 32px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px; overflow: hidden;
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+
+    th {
+      padding: 12px 16px; text-align: left;
+      font-size: 11px; text-transform: uppercase;
+      letter-spacing: 1px; color: rgba(255,255,255,0.4);
+      background: rgba(255,255,255,0.03);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    td {
+      padding: 14px 16px; font-size: 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      vertical-align: top;
+    }
+
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .msg-content {
+      max-width: 500px; line-height: 1.5;
+      word-break: break-word;
+    }
+
+    .msg-date { color: rgba(255,255,255,0.4); font-size: 12px; white-space: nowrap; }
+
+    .btn-delete {
+      padding: 6px 14px;
+      background: rgba(255,60,60,0.1);
+      border: 1px solid rgba(255,60,60,0.2);
+      border-radius: 6px; color: #ff6b6b;
+      font-size: 12px; cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-delete:hover { background: rgba(255,60,60,0.25); }
+
+    .empty-msg {
+      padding: 60px; text-align: center;
+      color: rgba(255,255,255,0.3); font-size: 15px;
+    }
+
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      padding: 12px 20px; border-radius: 10px;
+      font-size: 13px; z-index: 1000;
+      animation: slideUp 0.3s ease;
+      display: none;
+    }
+
+    .toast.success { background: rgba(0,200,100,0.15); border: 1px solid rgba(0,200,100,0.3); color: #4ade80; display: block; }
+    .toast.error { background: rgba(255,60,60,0.15); border: 1px solid rgba(255,60,60,0.3); color: #ff6b6b; display: block; }
+
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    /* Confirm dialog */
+    .confirm-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+      display: none; align-items: center; justify-content: center;
+      z-index: 500;
+    }
+
+    .confirm-overlay.active { display: flex; }
+
+    .confirm-card {
+      padding: 32px; max-width: 400px; width: 90%;
+      background: #1a1a2e;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px; text-align: center;
+    }
+
+    .confirm-card p { margin-bottom: 24px; font-size: 15px; line-height: 1.6; }
+
+    .confirm-actions { display: flex; gap: 12px; justify-content: center; }
+
+    .btn-confirm-delete {
+      padding: 10px 24px;
+      background: rgba(255,60,60,0.2);
+      border: 1px solid rgba(255,60,60,0.3);
+      border-radius: 8px; color: #ff6b6b;
+      font-weight: 600; cursor: pointer;
+    }
+
+    .btn-cancel {
+      padding: 10px 24px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px; color: #e0e0e0;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Login Screen -->
+  <div id="login-screen">
+    <div class="login-card">
+      <h2>🔐 Admin</h2>
+      <p class="subtitle">Đăng nhập để quản lý thông điệp</p>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="email" placeholder="admin@example.com" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label>Mật khẩu</label>
+        <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="btn" id="login-btn">Đăng nhập</button>
+      <div class="login-error" id="login-error"></div>
+    </div>
+  </div>
+
+  <!-- Admin Panel -->
+  <div id="admin-panel">
+    <div class="admin-header">
+      <h1>💌 Quản lý thông điệp</h1>
+      <div class="user-info">
+        <span id="admin-email"></span>
+        <button class="btn-sm" id="logout-btn">Đăng xuất</button>
+      </div>
+    </div>
+
+    <div class="stats-bar">
+      <div class="stat-card">
+        <div class="stat-value" id="stat-total">0</div>
+        <div class="stat-label">Tổng thông điệp</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-today">0</div>
+        <div class="stat-label">Hôm nay</div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <span class="title">Danh sách thông điệp</span>
+      <input type="text" class="search-input" id="search" placeholder="🔍 Tìm kiếm thông điệp...">
+    </div>
+
+    <div class="messages-table">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:50px">#</th>
+            <th>Nội dung</th>
+            <th style="width:160px">Thời gian</th>
+            <th style="width:80px">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody id="msg-body"></tbody>
+      </table>
+      <div class="empty-msg" id="empty-msg" style="display:none;">Chưa có thông điệp nào 🌌</div>
+    </div>
+  </div>
+
+  <!-- Confirm Delete -->
+  <div class="confirm-overlay" id="confirm-overlay">
+    <div class="confirm-card">
+      <p>Bạn có chắc muốn <strong style="color:#ff6b6b">xóa</strong> thông điệp này?</p>
+      <div class="confirm-actions">
+        <button class="btn-cancel" id="confirm-cancel">Hủy</button>
+        <button class="btn-confirm-delete" id="confirm-delete">Xóa</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = 'https://zdpfelmwmmtunarzbiyi.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_jYSh24DFZq2uwRGnEpLJqQ_bY6DPfEs';
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let allMessages = [];
+    let deleteTargetId = null;
+
+    // ── Elements ──
+    const loginScreen = document.getElementById('login-screen');
+    const adminPanel = document.getElementById('admin-panel');
+    const loginBtn = document.getElementById('login-btn');
+    const loginError = document.getElementById('login-error');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const logoutBtn = document.getElementById('logout-btn');
+    const adminEmail = document.getElementById('admin-email');
+    const msgBody = document.getElementById('msg-body');
+    const emptyMsg = document.getElementById('empty-msg');
+    const searchInput = document.getElementById('search');
+    const statTotal = document.getElementById('stat-total');
+    const statToday = document.getElementById('stat-today');
+    const confirmOverlay = document.getElementById('confirm-overlay');
+    const toastEl = document.getElementById('toast');
+
+    // ── Auth ──
+    async function checkSession() {
+      const { data: { session } } = await sb.auth.getSession();
+      if (session) showAdmin(session.user);
+    }
+    checkSession();
+
+    loginBtn.addEventListener('click', async () => {
+      const email = emailInput.value.trim();
+      const pass = passwordInput.value;
+      if (!email || !pass) return;
+
+      loginBtn.disabled = true;
+      loginBtn.textContent = 'Đang đăng nhập...';
+      loginError.style.display = 'none';
+
+      const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+
+      if (error) {
+        loginError.textContent = 'Sai email hoặc mật khẩu';
+        loginError.style.display = 'block';
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Đăng nhập';
+        return;
+      }
+
+      showAdmin(data.user);
+    });
+
+    // Enter key to login
+    passwordInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') loginBtn.click(); });
+    emailInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') passwordInput.focus(); });
+
+    logoutBtn.addEventListener('click', async () => {
+      await sb.auth.signOut();
+      adminPanel.style.display = 'none';
+      loginScreen.style.display = 'flex';
+      loginBtn.disabled = false;
+      loginBtn.textContent = 'Đăng nhập';
+      emailInput.value = '';
+      passwordInput.value = '';
+    });
+
+    function showAdmin(user) {
+      loginScreen.style.display = 'none';
+      adminPanel.style.display = 'block';
+      adminEmail.textContent = user.email;
+      loadMessages();
+    }
+
+    // ── Messages ──
+    async function loadMessages() {
+      const { data, error } = await sb.from('messages').select('*').order('created_at', { ascending: false });
+
+      if (error) {
+        showToast('Không thể tải thông điệp: ' + error.message, 'error');
+        return;
+      }
+
+      allMessages = data || [];
+      updateStats();
+      renderMessages(allMessages);
+    }
+
+    function updateStats() {
+      statTotal.textContent = allMessages.length;
+      const today = new Date().toDateString();
+      statToday.textContent = allMessages.filter(m => new Date(m.created_at).toDateString() === today).length;
+    }
+
+    function renderMessages(msgs) {
+      if (msgs.length === 0) {
+        msgBody.innerHTML = '';
+        emptyMsg.style.display = 'block';
+        return;
+      }
+
+      emptyMsg.style.display = 'none';
+      msgBody.innerHTML = msgs.map((m, i) => {
+        const d = new Date(m.created_at);
+        const dateStr = d.toLocaleDateString('vi-VN', {
+          day: 'numeric', month: 'short', year: 'numeric',
+          hour: '2-digit', minute: '2-digit'
+        });
+        return `<tr>
+          <td style="color:rgba(255,255,255,0.3)">${i + 1}</td>
+          <td><div class="msg-content">${escapeHtml(m.content)}</div></td>
+          <td><span class="msg-date">${dateStr}</span></td>
+          <td><button class="btn-delete" onclick="confirmDelete('${m.id}')">Xóa</button></td>
+        </tr>`;
+      }).join('');
+    }
+
+    function escapeHtml(text) {
+      const d = document.createElement('div');
+      d.textContent = text;
+      return d.innerHTML;
+    }
+
+    // ── Search ──
+    searchInput.addEventListener('input', () => {
+      const q = searchInput.value.toLowerCase().trim();
+      if (!q) { renderMessages(allMessages); return; }
+      renderMessages(allMessages.filter(m => m.content.toLowerCase().includes(q)));
+    });
+
+    // ── Delete ──
+    window.confirmDelete = function(id) {
+      deleteTargetId = id;
+      confirmOverlay.classList.add('active');
+    };
+
+    document.getElementById('confirm-cancel').addEventListener('click', () => {
+      confirmOverlay.classList.remove('active');
+      deleteTargetId = null;
+    });
+
+    document.getElementById('confirm-delete').addEventListener('click', async () => {
+      if (!deleteTargetId) return;
+
+      const { error } = await sb.from('messages').delete().eq('id', deleteTargetId);
+      confirmOverlay.classList.remove('active');
+
+      if (error) {
+        showToast('Xóa thất bại: ' + error.message, 'error');
+      } else {
+        showToast('Đã xóa thông điệp', 'success');
+        allMessages = allMessages.filter(m => m.id !== deleteTargetId);
+        updateStats();
+        renderMessages(allMessages);
+      }
+      deleteTargetId = null;
+    });
+
+    // ── Toast ──
+    function showToast(msg, type) {
+      toastEl.textContent = msg;
+      toastEl.className = 'toast ' + type;
+      setTimeout(() => { toastEl.className = 'toast'; }, 3000);
+    }
+  </script>
+</body>
+</html>
