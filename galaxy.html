@@ -203,6 +203,70 @@
       pointer-events: none;
     }
 
+    /* Music toggle button */
+    #music-toggle {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(12px);
+      color: #ffd700;
+      font-size: 22px;
+      cursor: pointer;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.15);
+    }
+
+    #music-toggle:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 215, 0, 0.4);
+      box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+      transform: scale(1.1);
+    }
+
+    #music-toggle.playing {
+      animation: musicPulse 2s ease-in-out infinite;
+    }
+
+    #music-toggle .bar {
+      display: inline-block;
+      width: 3px;
+      margin: 0 1.5px;
+      background: #ffd700;
+      border-radius: 2px;
+      animation: none;
+    }
+
+    #music-toggle.playing .bar {
+      animation: barBounce 1s ease-in-out infinite;
+    }
+
+    #music-toggle.playing .bar:nth-child(1) { height: 8px; animation-delay: 0s; }
+    #music-toggle.playing .bar:nth-child(2) { height: 14px; animation-delay: 0.15s; }
+    #music-toggle.playing .bar:nth-child(3) { height: 10px; animation-delay: 0.3s; }
+    #music-toggle.playing .bar:nth-child(4) { height: 16px; animation-delay: 0.1s; }
+    #music-toggle.playing .bar:nth-child(5) { height: 6px; animation-delay: 0.25s; }
+
+    #music-toggle:not(.playing) .bar { height: 4px; }
+
+    @keyframes barBounce {
+      0%, 100% { transform: scaleY(0.5); }
+      50% { transform: scaleY(1.5); }
+    }
+
+    @keyframes musicPulse {
+      0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.15); }
+      50% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.35); }
+    }
+
     /* Empty state */
     #empty-state {
       position: fixed;
@@ -239,6 +303,18 @@
   </div>
   <div id="tooltip"></div>
   <div id="hint">💌 Click vào lá thư để đọc thông điệp</div>
+
+  <!-- Background Music -->
+  <audio id="bg-music" loop preload="auto">
+    <source src="music.mp3" type="audio/mpeg">
+  </audio>
+  <button id="music-toggle" title="Bật/Tắt nhạc">
+    <span class="bar"></span>
+    <span class="bar"></span>
+    <span class="bar"></span>
+    <span class="bar"></span>
+    <span class="bar"></span>
+  </button>
   <div id="empty-state">
     <div class="empty-icon">🌌</div>
     <div class="empty-text">Chưa có thông điệp nào...<br>Hãy là người đầu tiên gửi! ✨</div>
@@ -632,6 +708,43 @@
 
     // Hide hint after 6s
     setTimeout(() => { document.getElementById('hint').style.opacity = '0'; }, 6000);
+
+    // ── Background Music ──
+    const bgMusic = document.getElementById('bg-music');
+    const musicToggle = document.getElementById('music-toggle');
+    bgMusic.volume = 0.4;
+
+    // Try autoplay on page load
+    function tryAutoplay() {
+      bgMusic.play().then(() => {
+        musicToggle.classList.add('playing');
+      }).catch(() => {
+        // Autoplay blocked - wait for user interaction
+        const startMusic = () => {
+          bgMusic.play().then(() => {
+            musicToggle.classList.add('playing');
+          }).catch(() => {});
+          document.removeEventListener('click', startMusic);
+          document.removeEventListener('touchstart', startMusic);
+          document.removeEventListener('keydown', startMusic);
+        };
+        document.addEventListener('click', startMusic, { once: false });
+        document.addEventListener('touchstart', startMusic, { once: false });
+        document.addEventListener('keydown', startMusic, { once: false });
+      });
+    }
+    tryAutoplay();
+
+    musicToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (bgMusic.paused) {
+        bgMusic.play();
+        musicToggle.classList.add('playing');
+      } else {
+        bgMusic.pause();
+        musicToggle.classList.remove('playing');
+      }
+    });
 
     // ── Animation loop ──
     const clock = new THREE.Clock();
